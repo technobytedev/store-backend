@@ -1,0 +1,9 @@
+# .gitignore
+
+# Ignore node_modules
+node_modules
+
+# Ignore other files or directories as needed
+.env
+.DS_Store
+npm-debug.log
