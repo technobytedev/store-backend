@@ -3,17 +3,17 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-  class User extends Model {
+  class Users extends Model {
     static associate(models) {
       // Define association with UserDetails
       this.hasOne(models.UserDetails, {
         foreignKey: 'userId',
-        as: 'details', // Alias for the association
+        as: 'UserDetails', // Alias for the association
       });
     }
   }
 
-  User.init(
+  Users.init(
     {
       id: {
         type: DataTypes.UUID,
@@ -52,12 +52,12 @@ module.exports = (sequelize) => {
     },
     {
       sequelize,
-      modelName: 'User', // Model name
+      modelName: 'Users', // Model name
       tableName: 'Users', // Explicit table name
       timestamps: true, // Automatically manages createdAt, updatedAt
       paranoid: true, // Enables soft delete functionality
     }
   );
 
-  return User;
+  return Users;
 };

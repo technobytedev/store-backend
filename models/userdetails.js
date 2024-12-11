@@ -6,9 +6,9 @@ module.exports = (sequelize) => {
   class UserDetails extends Model {
     static associate(models) {
       // Define association with User
-      this.belongsTo(models.User, {
+      this.belongsTo(models.Users, {
         foreignKey: 'userId',
-        as: 'user', // Alias for the association
+        as: 'Users', // Alias for the association
       });
     }
   }

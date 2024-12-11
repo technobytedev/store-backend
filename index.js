@@ -1,41 +1,56 @@
 require('dotenv').config();
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
 const { sequelize, User, UserDetails } = require('./models');
 const { or } = require('sequelize');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-
 const app = express();
 const port = 8000;
+
+app.use(cors({
+  origin: 'http://localhost:3000',  // Replace with your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const BEARER_JWT_EXPIRES_IN = process.env.BEARER_JWT_EXPIRES_IN;
+const JWT_SECRET = 'dce8d2d53b551fe09b6031288dd829066e380f99b20c13369f4f220430501b267e7b63843eb62d949ca82478064d2aeb1eb5a2438946fa17346e3f3761ea7f2932820d7ca6b5767c7256cad522354bf17b8650949e03cda4b78ef856d9570913be169379f3d6274169d1a9db91abb20a546c546e42849d815a32bb5edf50928317540a939490bd9fa2414331c2c61d0831365745cc96bb804799e62884ff1141d0e161bd62bc88f3c98c61448954ec4f48dba2602924521c4203362d4845e8c6294a260045930a7893923dbaabea15bc91cb2a36b0ae97cee43279bee74f6f1729520f3784bc1a6cdb3cadd7da165295ac1006ae52fef2722c8ba4c7ddb1fcf4'
+const BEARER_JWT_EXPIRES_IN = '3hr'
+// const JWT_SECRET = process.env.JWT_SECRET;
+// const BEARER_JWT_EXPIRES_IN = process.env.BEARER_JWT_EXPIRES_IN;
 
 //---------------------------LOGIN-----------------------------------//
 app.post('/login', async (req, res) => {
-  
+
   try {
     const { username, password } = req.body;
+
+
     const user = await User.findAll({
       where: {
         username: username,
       },
     });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User or Email not found' });
+    if (user.length < 1) {
+      return res.status(200).json({ message: 'User or Email not found' });
+    }
+
+
+    if (user.length < 1) {
+      return res.status(200).json({ message: 'User or Email not found' });
     }
 
     const match = await bcrypt.compare(password, user[0].password);
 
     if (!match) {
-       return res.status(404).json({ error: 'Incorrect password. '});
+       return res.status(200).json({ message: 'Incorrect password. '});
     }
 
     // Generate a JWT
@@ -54,8 +69,7 @@ app.post('/login', async (req, res) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.error('Error loggin user:', error);
-    res.status(500).json({ error: 'Unable to login user' });
+    res.status(500).json({ message: 'Unable to login user' });
   }
 });
 
@@ -76,14 +90,14 @@ app.post('/register', async (req, res) => {
   const { username, password, email } = req.body;
 
   let errors = {};
-  
+
   if (!username) {
     errors.username = 'Username is required.';
   }
   if (username.length < 6) {
     errors.username = `Username must be at least 6 characters long.`
   }
-  
+
   if (!password) {
     errors.password = 'Password is required.';
   }
@@ -118,7 +132,7 @@ app.post('/register', async (req, res) => {
 
     return errorMessages.length ? errorMessages : true;
   };
-    
+
   const passwordValidationResult = validatePassword(password, passwordOptions);
 
   if (passwordValidationResult !== true) {
@@ -127,7 +141,7 @@ app.post('/register', async (req, res) => {
 
   if(!validator.isEmail(email)) {
      errors.email = 'Please enter a valid email.'
-  } 
+  }
 
   if (!email) {
     errors.email = 'Email is required.';
@@ -140,7 +154,7 @@ app.post('/register', async (req, res) => {
   const existingUsers = await User.findOne({
       where: { email: email }
   });
-  
+
   if (existingUsers) {
     errors.email = 'Email already registered.'
   }
